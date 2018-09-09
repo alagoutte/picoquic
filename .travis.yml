@@ -40,10 +40,10 @@ script:
   - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .; fi
   # no extra check
   - if [ "$EXTRA_CHECK" == "OFF" ]; then cmake .; fi
-  # build !
-  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build make; else make; fi
   # cppcheck...
   - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cppcheck --project=compile_commands.json; fi
+  # build !
+  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build make; else make; fi
   - ulimit -c unlimited -S
   - ./picoquic_ct -n && RESULT=$?
   # Early out if the program exited successfully
