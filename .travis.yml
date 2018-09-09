@@ -5,6 +5,9 @@ os:
 compiler:
   - clang
   - gcc
+env:
+ - EXTRA_CHECK=ON
+ - EXTRA_CHECK=OFF
 sudo: required
 addons:
   apt:
@@ -31,11 +34,16 @@ script:
   # Now build picotls examples and test
   - echo $CC
   - echo $CXX
-  - if [ "$CC" == "clang" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; fi
-  - if [ "$CC" == "clang" ]; then scan-build make; fi
-  - cmake .
-  - if [ "$CC" == "gcc" ]; then make clean; fi
-  - make
+  # if clang and Extra_check, use scan-build
+  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; fi
+  # if gcc and extra_check, use cppcheck
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .; fi
+  # no extra check
+  - if [ "$EXTRA_CHECK" == "OFF" ]; then cmake .; fi
+  # build !
+  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build make; else make; fi
+  # cppcheck...
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cppcheck --project=compile_commands.json; fi
   - ulimit -c unlimited -S
   - ./picoquic_ct -n && RESULT=$?
   # Early out if the program exited successfully
