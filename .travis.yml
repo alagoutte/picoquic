@@ -35,6 +35,7 @@ script:
   # Now build picotls examples and test
   - echo $CC
   - echo $CXX
+  - cppcheck
   # if clang and Extra_check, use scan-build
   - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; fi
   # if gcc and extra_check, use cppcheck
