@@ -6,8 +6,8 @@ compiler:
   - clang
   - gcc
 env:
- - EXTRA_CHECK=ON
- - EXTRA_CHECK=OFF
+ - EXTRA_CHECK=cppcheck
+ - EXTRA_CHECK=scan-build
 sudo: required
 addons:
   apt:
@@ -36,13 +36,13 @@ script:
   - echo $CC
   - echo $CXX
   # if clang and Extra_check, use scan-build
-  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; fi
+  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "scan-build" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; else cmake .; fi
   # if gcc and extra_check, use cppcheck
-  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .; fi
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "cppcheck" ]; then cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .; else cmake .;fi
   # cppcheck...
-  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cppcheck --project=compile_commands.json --enable=all --quiet; fi
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "cppcheck" ]; then cppcheck --project=compile_commands.json; fi
   # build !
-  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build make; else make; fi
+  - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "scan-build" ]; then scan-build make; else make; fi
   - ulimit -c unlimited -S
   - ./picoquic_ct -n && RESULT=$?
   # Early out if the program exited successfully
