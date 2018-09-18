@@ -29,6 +29,7 @@ before_install:
 before_script:
   # First build external lib
   - ./ci/build_picotls.sh
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then ./ci/build_cppcheck.sh; fi
   - sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
 script:
   # Now build picotls examples and test
@@ -38,10 +39,8 @@ script:
   - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=/usr/share/clang/scan-build/ccc-analyzer .; fi
   # if gcc and extra_check, use cppcheck
   - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .; fi
-  # no extra check
-  - if [ "$EXTRA_CHECK" == "OFF" ]; then cmake .; fi
   # cppcheck...
-  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cppcheck --project=compile_commands.json; fi
+  - if [ "$CC" == "gcc" ] && [ "$EXTRA_CHECK" == "ON" ]; then cppcheck --project=compile_commands.json --enable=all --quiet; fi
   # build !
   - if [ "$CC" == "clang" ] && [ "$EXTRA_CHECK" == "ON" ]; then scan-build make; else make; fi
   - ulimit -c unlimited -S
